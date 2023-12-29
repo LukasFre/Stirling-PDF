@@ -52,9 +52,13 @@ public class MultiPageLayoutController {
 	    int cols = pagesPerSheet == 2 || pagesPerSheet == 3 ? pagesPerSheet : (int) Math.sqrt(pagesPerSheet);
 	    int rows = pagesPerSheet == 2 || pagesPerSheet == 3 ? 1 : (int) Math.sqrt(pagesPerSheet);
 
+		int pageWidth = request.getPageWidth();
+		int pageHeight = request.getPageHeight();
+		String layoutOption = request.getLayoutOption();
+
 	    PDDocument sourceDocument = PDDocument.load(file.getInputStream());
 	    PDDocument newDocument = new PDDocument();
-	    PDPage newPage = new PDPage(PDRectangle.A4);
+	    PDPage newPage = new PDPage(new PDRectangle(pageWidth, pageHeight));
 	    newDocument.addPage(newPage);
 
 	    int totalPages = sourceDocument.getNumberOfPages();
@@ -87,8 +91,18 @@ public class MultiPageLayoutController {
 	        int rowIndex = adjustedPageIndex / cols;
 	        int colIndex = adjustedPageIndex % cols;
 
-	        float x = colIndex * cellWidth + (cellWidth - rect.getWidth() * scale) / 2;
-	        float y = newPage.getMediaBox().getHeight() - ((rowIndex + 1) * cellHeight - (cellHeight - rect.getHeight() * scale) / 2);
+	        float x, y;
+			if ("side-by-side".equals(layoutOption)) {
+				// For side-by-side layout, pages are arranged horizontally.
+				// So, 'x' changes for each page, but 'y' remains the same.
+				x = adjustedPageIndex * cellWidth + (cellWidth - rect.getWidth() * scale) / 2;
+				y = newPage.getMediaBox().getHeight() - (cellHeight - rect.getHeight() * scale) / 2;
+			} else if ("stacked".equals(layoutOption)) {
+				// For stacked layout, pages are arranged vertically.
+				// So, 'y' changes for each page, but 'x' remains the same.
+				x = (cellWidth - rect.getWidth() * scale) / 2;
+				y = newPage.getMediaBox().getHeight() - (adjustedPageIndex * cellHeight + (cellHeight - rect.getHeight() * scale) / 2);
+			}
 
 	        contentStream.saveGraphicsState();
 	        contentStream.transform(Matrix.getTranslateInstance(x, y));

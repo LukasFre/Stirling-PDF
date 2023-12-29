@@ -76,7 +76,7 @@ public class MultiPageLayoutController {
 	        if (i != 0 && i % pagesPerSheet == 0) {
 	            // Close the current content stream and create a new page and content stream
 	            contentStream.close();
-	            newPage = new PDPage(PDRectangle.A4);
+	            newPage = new PDPage(new PDRectangle(pageWidth, pageHeight));
 	            newDocument.addPage(newPage);
 	            contentStream = new PDPageContentStream(newDocument, newPage, PDPageContentStream.AppendMode.APPEND, true, true);
 	        }
@@ -91,7 +91,7 @@ public class MultiPageLayoutController {
 	        int rowIndex = adjustedPageIndex / cols;
 	        int colIndex = adjustedPageIndex % cols;
 
-	        float x, y;
+	        float x = 0, y = 0;
 			if ("side-by-side".equals(layoutOption)) {
 				// For side-by-side layout, pages are arranged horizontally.
 				// So, 'x' changes for each page, but 'y' remains the same.
